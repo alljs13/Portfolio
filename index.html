@@ -215,7 +215,7 @@ input[type=range].orange::-webkit-slider-thumb{background:var(–o);}
   <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:4px">TAX & INFLATION ADJUSTMENTS</div>
   <div class="adj-grid">
     <div class="adj-card">
-      <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">ROMANIAN CGT</div>
+      <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">CGT</div>
       <div class="adj-big" id="tax-d" style="color:var(--y)">3.0%</div>
       <div class="adj-sub">Applied on capital gains at exit</div>
       <label class="tog-row"><input type="checkbox" id="tax-tog" checked onchange="updAdj()"><span class="tog-lbl" id="tax-tl">Tax ON</span></label>
@@ -224,9 +224,9 @@ input[type=range].orange::-webkit-slider-thumb{background:var(–o);}
     <div class="adj-card">
       <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">EUR INFLATION</div>
       <div class="adj-big" id="inf-d" style="color:var(--o)">2.6%</div>
-      <div class="adj-sub">10yr EUR avg · purchasing power</div>
+      <div class="adj-sub">Purchasing power</div>
       <label class="tog-row"><input type="checkbox" id="inf-tog" checked onchange="updAdj()"><span class="tog-lbl" id="inf-tl">Inflation ON</span></label>
-      <input type="range" class="orange" min="0" max="10" step="0.1" value="2.6" id="inf-sl" oninput="onInf(this.value)">
+      <input type="range" class="orange" min="0" max="20" step="0.1" value="2.6" id="inf-sl" oninput="onInf(this.value)">
     </div>
     <div class="adj-card">
       <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:10px">IMPACT SUMMARY</div>
