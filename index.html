@@ -198,7 +198,7 @@ input[type=range].orange::-webkit-slider-thumb{background:var(–o);}
     <div class="ccard">
       <div class="cl">Projection Horizon</div>
       <div class="yd" id="yd">30</div>
-      <div class="ys" id="ys">years · age 55</div>
+      <div class="ys" id="ys">years</div>
       <input type="range" min="5" max="40" value="30" id="yrsl" oninput="onYr(this.value)">
       <div style="display:flex;justify-content:space-between;font-family:monospace;font-size:9px;color:var(--t3);margin-top:5px"><span>5y</span><span>20y</span><span>40y</span></div>
     </div>
@@ -222,7 +222,7 @@ input[type=range].orange::-webkit-slider-thumb{background:var(–o);}
       <input type="range" class="yellow" min="0" max="10" step="0.5" value="3" id="tax-sl" oninput="onTax(this.value)">
     </div>
     <div class="adj-card">
-      <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">EUR INFLATION</div>
+      <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">INFLATION</div>
       <div class="adj-big" id="inf-d" style="color:var(--o)">2.6%</div>
       <div class="adj-sub">Purchasing power</div>
       <label class="tog-row"><input type="checkbox" id="inf-tog" checked onchange="updAdj()"><span class="tog-lbl" id="inf-tl">Inflation ON</span></label>
@@ -238,7 +238,7 @@ input[type=range].orange::-webkit-slider-thumb{background:var(–o);}
   </div>
   <div class="rvstrip">
     <div class="rvc"><div class="rvc-l">NOMINAL FINAL</div><div class="rvc-v" id="rv-n" style="color:var(--g)">—</div><div class="rvc-s">Before deductions</div></div>
-    <div class="rvc"><div class="rvc-l">AFTER ROMANIAN CGT</div><div class="rvc-v" id="rv-t" style="color:var(--y)">—</div><div class="rvc-s" id="rv-ts">3% on gains</div></div>
+    <div class="rvc"><div class="rvc-l">AFTER CGT</div><div class="rvc-v" id="rv-t" style="color:var(--y)">—</div><div class="rvc-s" id="rv-ts">3% on gains</div></div>
     <div class="rvc"><div class="rvc-l">REAL PURCHASING POWER</div><div class="rvc-v" id="rv-r" style="color:var(--o)">—</div><div class="rvc-s" id="rv-rs">Today's euros</div></div>
   </div>
 </div>
