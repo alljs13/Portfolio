@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Simulator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#070a12;--bg2:#0c1018;--card:rgba(255,255,255,0.04);
+  --b:rgba(255,255,255,0.08);--b2:rgba(255,255,255,0.15);
+  --t:#eaeaea;--t2:#a0aec0;--t3:#5a6a80;
+  --g:#00ff87;--r:#ff4d6d;--y:#ffc542;--o:#ff9f43;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--t);font-family:'Segoe UI',sans-serif;padding:24px 18px;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,135,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,135,.015) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+.wrap{max-width:1100px;margin:0 auto;position:relative;z-index:1;}
+
+/* HEADER */
+.htag{font-family:monospace;font-size:10px;color:var(–g);letter-spacing:3px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.htag::before{content:’’;width:20px;height:1px;background:var(–g);}
+h1{font-size:clamp(32px,6vw,60px);font-weight:900;line-height:1;letter-spacing:1px;margin-bottom:6px;}
+h1 span{color:var(–g);}
+.hsub{font-family:monospace;font-size:11px;color:var(–t2);margin-bottom:24px;}
+
+/* CARDS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+@media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr);}}
+.sc{background:var(–card);border:1px solid var(–b);border-radius:12px;padding:18px;transition:border-color .2s;}
+.sc:hover{border-color:var(–b2);}
+.sc-l{font-family:monospace;font-size:9px;color:var(–t3);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase;}
+.sc-v{font-size:clamp(18px,2.5vw,26px);font-weight:800;line-height:1;margin-bottom:4px;}
+.sc-s{font-family:monospace;font-size:10px;color:var(–t3);}
+
+/* SCENARIOS */
+.scen{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.scen-l{font-family:monospace;font-size:10px;color:var(–t3);letter-spacing:2px;}
+.sb{font-family:monospace;font-size:11px;letter-spacing:1px;padding:9px 16px;border-radius:8px;cursor:pointer;border:1px solid var(–b);background:transparent;color:var(–t2);transition:all .2s;}
+.sb.bear.on{background:#ff4d6d22;border-color:#ff4d6d;color:#ff4d6d;}
+.sb.base.on{background:#00ff8722;border-color:#00ff87;color:#00ff87;}
+.sb.bull.on{background:#ffc54222;border-color:#ffc542;color:#ffc542;}
+
+/* GRID */
+.mgrid{display:grid;grid-template-columns:1fr 270px;gap:16px;margin-bottom:16px;}
+@media(max-width:800px){.mgrid{grid-template-columns:1fr;}}
+
+/* PANEL */
+.panel{background:var(–card);border:1px solid var(–b);border-radius:14px;padding:22px;}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
+.pt{font-family:monospace;font-size:10px;color:var(–t3);letter-spacing:2px;}
+.vtabs{display:flex;gap:3px;background:rgba(255,255,255,.04);border-radius:8px;padding:3px;}
+.vt{font-family:monospace;font-size:10px;padding:5px 10px;border-radius:6px;border:none;cursor:pointer;background:transparent;color:var(–t2);transition:all .2s;letter-spacing:.5px;}
+.vt.on{background:rgba(255,255,255,.12);color:var(–t);}
+.lgnd{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:12px;}
+.li{display:flex;align-items:center;gap:4px;font-family:monospace;font-size:10px;color:var(–t2);}
+.ld{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* SIDEBAR */
+.sb-inner{display:flex;flex-direction:column;gap:12px;}
+.ccard{background:var(–card);border:1px solid var(–b);border-radius:12px;padding:18px;}
+.cl{font-family:monospace;font-size:9px;color:var(–t3);letter-spacing:2px;margin-bottom:12px;text-transform:uppercase;}
+.yd{font-size:38px;font-weight:900;color:var(–g);line-height:1;margin-bottom:4px;}
+.ys{font-family:monospace;font-size:10px;color:var(–t3);margin-bottom:12px;}
+.ms-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(–b);}
+.ms-row:last-child{border-bottom:none;}
+
+/* RANGE INPUTS */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(–g);border:2px solid var(–bg);cursor:pointer;box-shadow:0 0 6px rgba(0,255,135,.4);}
+input[type=range].yellow::-webkit-slider-thumb{background:var(–y);}
+input[type=range].orange::-webkit-slider-thumb{background:var(–o);}
+
+/* TAX / INF */
+.adj{background:var(–card);border:1px solid var(–b);border-radius:14px;padding:22px;margin-bottom:16px;}
+.adj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+@media(max-width:600px){.adj-grid{grid-template-columns:1fr;}}
+.adj-card{background:rgba(255,255,255,.025);border:1px solid var(–b);border-radius:12px;padding:14px;}
+.adj-big{font-size:26px;font-weight:800;margin-bottom:4px;}
+.adj-sub{font-family:monospace;font-size:10px;color:var(–t3);margin-bottom:10px;}
+.tog-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;}
+.tog-row input[type=checkbox]{accent-color:var(–g);width:14px;height:14px;cursor:pointer;}
+.tog-lbl{font-family:monospace;font-size:11px;color:var(–t2);}
+.imp-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(–b);}
+.rvstrip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:14px;border-top:1px solid var(–b);}
+.rvc{background:rgba(255,255,255,.02);border-radius:10px;padding:12px;}
+.rvc-l{font-family:monospace;font-size:9px;color:var(–t3);letter-spacing:1px;margin-bottom:5px;}
+.rvc-v{font-size:20px;font-weight:800;margin-bottom:3px;}
+.rvc-s{font-family:monospace;font-size:9px;color:var(–t3);}
+
+/* PORTFOLIO EDITOR */
+.ped{background:var(–card);border:1px solid var(–b);border-radius:14px;padding:22px;margin-bottom:16px;}
+.ped-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.badge{background:rgba(0,255,135,.1);border:1px solid rgba(0,255,135,.25);border-radius:8px;padding:7px 14px;font-family:monospace;font-size:12px;color:var(–g);display:inline-flex;align-items:center;gap:8px;}
+.warn{color:var(–r);}
+.btn-g{font-family:monospace;font-size:10px;letter-spacing:1px;padding:8px 14px;border-radius:8px;border:1px solid rgba(0,255,135,.3);background:rgba(0,255,135,.08);color:var(–g);cursor:pointer;transition:all .2s;}
+.btn-g:hover{background:rgba(0,255,135,.15);}
+.btn-n{font-family:monospace;font-size:10px;letter-spacing:1px;padding:8px 12px;border-radius:8px;border:1px solid var(–b);background:transparent;color:var(–t3);cursor:pointer;transition:all .2s;}
+.btn-n:hover{border-color:var(–b2);color:var(–t);}
+.pt-table{width:100%;border-collapse:collapse;}
+.pt-table th{font-family:monospace;font-size:9px;color:var(–t3);letter-spacing:1px;font-weight:400;padding:7px 8px;border-bottom:1px solid var(–b);text-align:left;}
+.pt-row td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;}
+.pt-row:hover td{background:rgba(255,255,255,.02);}
+.ei{background:rgba(255,255,255,.07);border:1px solid var(–b2);border-radius:6px;color:var(–t);font-family:monospace;font-size:11px;padding:5px 7px;outline:none;transition:border-color .2s;}
+.ei:focus{border-color:var(–g);}
+.swatch{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid rgba(255,255,255,.2);display:inline-block;}
+.del-b{background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.25);border-radius:6px;color:var(–r);font-family:monospace;font-size:10px;padding:4px 9px;cursor:pointer;transition:all .2s;}
+.del-b:hover{background:rgba(255,77,109,.25);}
+
+/* BK TABLE */
+.bkt{width:100%;border-collapse:collapse;font-size:11px;}
+.bkt th{font-family:monospace;font-size:9px;color:var(–t3);letter-spacing:1px;font-weight:400;padding:7px 10px;border-bottom:1px solid var(–b);text-align:left;}
+.bkt td{padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.03);}
+.bkt tr.tr td{border-top:1px solid var(–b2);font-weight:700;font-size:13px;background:rgba(255,255,255,.02);}
+
+/* MS GRID */
+.msg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.msc{padding:14px;background:rgba(255,255,255,.02);border-radius:10px;border:1px solid var(–b);}
+.msy{font-family:monospace;font-size:9px;color:var(–t3);letter-spacing:1px;margin-bottom:6px;}
+.msv{font-size:20px;font-weight:800;margin-bottom:4px;}
+.msr{display:flex;justify-content:space-between;font-family:monospace;font-size:9px;margin-bottom:2px;}
+
+/* COMPARE */
+.ctrio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
+.cbox{text-align:center;padding:14px 10px;background:rgba(255,255,255,.02);border-radius:10px;}
+.cv{font-size:22px;font-weight:800;}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.md{background:#0c1018;border:1px solid var(–b2);border-radius:16px;padding:26px;max-width:460px;width:92%;max-height:90vh;overflow-y:auto;}
+.md h3{font-size:24px;font-weight:900;margin-bottom:6px;letter-spacing:1px;}
+.md p{font-family:monospace;font-size:10px;color:var(–t3);margin-bottom:18px;line-height:1.6;}
+.mf{margin-bottom:12px;}
+.mf label{font-family:monospace;font-size:9px;color:var(–t3);letter-spacing:2px;display:block;margin-bottom:6px;text-transform:uppercase;}
+.mf input{background:rgba(255,255,255,.07);border:1px solid var(–b2);border-radius:8px;color:var(–t);font-family:monospace;font-size:13px;padding:10px 12px;outline:none;width:100%;transition:border-color .2s;}
+.mf input:focus{border-color:var(–g);}
+.res-box{background:rgba(0,255,135,.06);border:1px solid rgba(0,255,135,.2);border-radius:10px;padding:16px;margin-bottom:14px;}
+.res-reason{font-family:monospace;font-size:10px;color:var(–t3);line-height:1.6;padding:10px;background:rgba(255,255,255,.03);border-radius:8px;margin-top:10px;}
+.err-box{background:rgba(255,77,109,.08);border:1px solid rgba(255,77,109,.25);border-radius:10px;padding:14px;margin-bottom:14px;}
+.xtb-hint{font-family:monospace;font-size:9px;color:var(–t3);margin-bottom:14px;line-height:1.7;}
+.xtb-hint span{color:var(–g);}
+.mbtns{display:flex;gap:10px;}
+.mok{flex:2;background:rgba(0,255,135,.15);border:1px solid rgba(0,255,135,.35);border-radius:8px;color:var(–g);font-family:monospace;font-size:11px;padding:11px;cursor:pointer;letter-spacing:1px;transition:all .2s;}
+.mok:disabled{background:rgba(255,255,255,.03);border-color:var(–b);color:var(–t3);cursor:not-allowed;}
+.mcancel{flex:1;background:transparent;border:1px solid var(–b);border-radius:8px;color:var(–t3);font-family:monospace;font-size:11px;padding:11px;cursor:pointer;letter-spacing:1px;}
+.loading-txt{font-family:monospace;font-size:11px;color:var(–g);text-align:center;padding:14px;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulse{animation:pulse 1.4s ease infinite;}
+.footer{font-family:monospace;font-size:9px;color:var(–t3);text-align:center;letter-spacing:2px;margin-top:24px;padding-top:16px;border-top:1px solid var(–b);}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<div class="htag">PORTFOLIO WEALTH SIMULATOR</div>
+<h1>PORTFOLIO <span>GROWTH</span></h1>
+<div class="hsub" id="hsub">Loading...</div>
+
+<div class="stats">
+  <div class="sc"><div class="sc-l">Nominal Value</div><div class="sc-v" id="sv-nom" style="color:var(--g)">—</div><div class="sc-s" id="sv-scen">base · 30yr</div></div>
+  <div class="sc"><div class="sc-l">After Tax</div><div class="sc-v" id="sv-tax" style="color:var(--y)">—</div><div class="sc-s" id="sv-taxs">3% Romanian CGT</div></div>
+  <div class="sc"><div class="sc-l">Real Value</div><div class="sc-v" id="sv-real" style="color:var(--o)">—</div><div class="sc-s" id="sv-reals">2.6% EUR inflation</div></div>
+  <div class="sc"><div class="sc-l">Monthly Input</div><div class="sc-v" id="sv-mo" style="color:var(--g)">—</div><div class="sc-s" id="sv-yr">—</div></div>
+</div>
+
+<div class="scen">
+  <span class="scen-l">SCENARIO</span>
+  <button class="sb bear" onclick="setScen('bear')">▼ BEAR −30%</button>
+  <button class="sb base on" onclick="setScen('base')">● BASE</button>
+  <button class="sb bull" onclick="setScen('bull')">▲ BULL +30%</button>
+</div>
+
+<div class="mgrid">
+  <div class="panel">
+    <div class="ph">
+      <span class="pt" id="pt">PORTFOLIO GROWTH — BASE</span>
+      <div class="vtabs">
+        <button class="vt on" onclick="setView('chart')">Chart</button>
+        <button class="vt" onclick="setView('compare')">Compare</button>
+        <button class="vt" onclick="setView('breakdown')">Breakdown</button>
+        <button class="vt" onclick="setView('milestones')">Milestones</button>
+      </div>
+    </div>
+    <div id="v-chart"><canvas id="mainChart" height="290"></canvas><div class="lgnd" id="lgnd"></div></div>
+    <div id="v-compare" style="display:none"><canvas id="cmpChart" height="290"></canvas>
+      <div class="ctrio">
+        <div class="cbox" style="border:1px solid #ff4d6d44"><div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">BEAR</div><div class="cv" style="color:#ff4d6d" id="c-b">—</div></div>
+        <div class="cbox" style="border:1px solid #00ff8744"><div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">BASE</div><div class="cv" style="color:#00ff87" id="c-bs">—</div></div>
+        <div class="cbox" style="border:1px solid #ffc54244"><div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">BULL</div><div class="cv" style="color:#ffc542" id="c-bu">—</div></div>
+      </div>
+    </div>
+    <div id="v-breakdown" style="display:none;overflow-x:auto"><table class="bkt"><thead><tr><th>Position</th><th>CAGR</th><th>Alloc</th><th>Monthly</th><th>Initial</th><th>Nominal</th><th>After Tax</th><th>×</th></tr></thead><tbody id="bk-body"></tbody></table></div>
+    <div id="v-milestones" style="display:none"><div class="msg" id="ms-grid"></div></div>
+  </div>
+  <div class="sb-inner">
+    <div class="ccard">
+      <div class="cl">Projection Horizon</div>
+      <div class="yd" id="yd">30</div>
+      <div class="ys" id="ys">years · age 55</div>
+      <input type="range" min="5" max="40" value="30" id="yrsl" oninput="onYr(this.value)">
+      <div style="display:flex;justify-content:space-between;font-family:monospace;font-size:9px;color:var(--t3);margin-top:5px"><span>5y</span><span>20y</span><span>40y</span></div>
+    </div>
+    <div class="ccard">
+      <div class="cl">Milestones</div>
+      <div id="ms-mini"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAX & INFLATION -->
+
+<div class="adj">
+  <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:4px">TAX & INFLATION ADJUSTMENTS</div>
+  <div style="font-family:monospace;font-size:10px;color:var(--t2);margin-bottom:18px">Romanian CGT on gains · EUR 10yr avg inflation</div>
+  <div class="adj-grid">
+    <div class="adj-card">
+      <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">ROMANIAN CGT</div>
+      <div class="adj-big" id="tax-d" style="color:var(--y)">3.0%</div>
+      <div class="adj-sub">Applied on capital gains at exit</div>
+      <label class="tog-row"><input type="checkbox" id="tax-tog" checked onchange="updAdj()"><span class="tog-lbl" id="tax-tl">Tax ON</span></label>
+      <input type="range" class="yellow" min="0" max="10" step="0.5" value="3" id="tax-sl" oninput="onTax(this.value)">
+    </div>
+    <div class="adj-card">
+      <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">EUR INFLATION</div>
+      <div class="adj-big" id="inf-d" style="color:var(--o)">2.6%</div>
+      <div class="adj-sub">10yr EUR avg · purchasing power</div>
+      <label class="tog-row"><input type="checkbox" id="inf-tog" checked onchange="updAdj()"><span class="tog-lbl" id="inf-tl">Inflation ON</span></label>
+      <input type="range" class="orange" min="0" max="10" step="0.1" value="2.6" id="inf-sl" oninput="onInf(this.value)">
+    </div>
+    <div class="adj-card">
+      <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:10px">IMPACT SUMMARY</div>
+      <div class="imp-row"><span style="font-family:monospace;font-size:10px;color:var(--t2)">Nominal</span><span style="font-family:monospace;font-size:11px;font-weight:700;color:var(--g)" id="imp-n">—</span></div>
+      <div class="imp-row"><span style="font-family:monospace;font-size:10px;color:var(--t2)">After Tax</span><span style="font-family:monospace;font-size:11px;font-weight:700;color:var(--y)" id="imp-t">—</span></div>
+      <div class="imp-row"><span style="font-family:monospace;font-size:10px;color:var(--t2)">Real Value</span><span style="font-family:monospace;font-size:11px;font-weight:700;color:var(--o)" id="imp-r">—</span></div>
+      <div class="imp-row" style="border:none"><span style="font-family:monospace;font-size:10px;color:var(--t2)">Power Lost</span><span style="font-family:monospace;font-size:11px;font-weight:700;color:var(--r)" id="imp-l">—</span></div>
+    </div>
+  </div>
+  <div class="rvstrip">
+    <div class="rvc"><div class="rvc-l">NOMINAL FINAL</div><div class="rvc-v" id="rv-n" style="color:var(--g)">—</div><div class="rvc-s">Before deductions</div></div>
+    <div class="rvc"><div class="rvc-l">AFTER ROMANIAN CGT</div><div class="rvc-v" id="rv-t" style="color:var(--y)">—</div><div class="rvc-s" id="rv-ts">3% on gains</div></div>
+    <div class="rvc"><div class="rvc-l">REAL PURCHASING POWER</div><div class="rvc-v" id="rv-r" style="color:var(--o)">—</div><div class="rvc-s" id="rv-rs">Today's euros</div></div>
+  </div>
+</div>
+
+<!-- PORTFOLIO EDITOR -->
+
+<div class="ped">
+  <div class="ped-hdr">
+    <div>
+      <div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px">PORTFOLIO EDITOR</div>
+      <div class="badge" id="ped-badge">100% · €1,175/mo</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-g" onclick="openModal()">✦ ADD POSITION</button>
+      <button class="btn-n" onclick="resetPf()">↺ RESET</button>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="pt-table">
+      <thead><tr><th></th><th>Ticker</th><th>Name</th><th>CAGR %</th><th>Alloc %</th><th>Monthly €</th><th></th></tr></thead>
+      <tbody id="pos-body"></tbody>
+    </table>
+  </div>
+  <div style="font-family:monospace;font-size:10px;color:var(--t3);margin-top:10px">XTB available: VUAA · VWCE · VVSM · EUDF · QGRW · CNDX · NVDA · MSFT · AAPL · AMZN · GOOGL · META · AVGO · MA · V · CEG · TSM · RHM · AMD · ASML</div>
+</div>
+
+<div class="footer">NOT FINANCIAL ADVICE · SIMULATION ONLY · ROMANIAN CGT 3% ON CAPITAL GAINS · PAST RETURNS ≠ FUTURE PERFORMANCE</div>
+</div>
+
+<!-- MODAL -->
+
+<div class="mo" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="md">
+    <h3>ADD POSITION</h3>
+    <p>Enter a ticker — Claude will research historical CAGR and auto-fill a conservative forward estimate.</p>
+    <div class="mf">
+      <label>TICKER SYMBOL</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="m-ticker" placeholder="e.g. GOOGL, META, VWCE..." style="text-transform:uppercase;flex:1" onkeydown="if(event.key==='Enter')doLookup()">
+        <button onclick="doLookup()" id="lookup-btn" style="background:rgba(0,255,135,.15);border:1px solid rgba(0,255,135,.35);border-radius:8px;color:var(--g);font-family:monospace;font-size:11px;padding:10px 14px;cursor:pointer;white-space:nowrap;letter-spacing:1px;min-width:110px">RESEARCH ▸</button>
+      </div>
+    </div>
+    <div id="lookup-status"></div>
+    <div class="xtb-hint">Common XTB tickers: <span>VUAA · VWCE · VVSM · EUDF · QGRW · NVDA · MSFT · AAPL · AMZN · GOOGL · META · AVGO · MA · V · CEG · AMD · ASML · RHM · TSM</span></div>
+    <div class="mbtns">
+      <button class="mcancel" onclick="closeModal()">CANCEL</button>
+      <button class="mok" id="add-btn" onclick="confirmAdd()" disabled>ADD TO PORTFOLIO</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS=['#00ff87','#86efac','#38bdf8','#818cf8','#f472b6','#fb923c','#e879f9','#f43f5e','#fbbf24','#fde68a','#64748b','#a78bfa','#34d399','#f97316','#06b6d4'];
+const DEFAULT=[
+  {ticker:"VUAA",name:"iShares S&P 500 Acc",alloc:25,cagr:10.4,color:"#00ff87",mo:200},
+  {ticker:"QGRW",name:"WisdomTree Quality Growth",alloc:15,cagr:13.0,color:"#86efac",mo:100},
+  {ticker:"VVSM",name:"VanEck Semiconductors",alloc:13,cagr:14.0,color:"#38bdf8",mo:125},
+  {ticker:"EUDF",name:"European Defence",alloc:10,cagr:12.0,color:"#818cf8",mo:100},
+  {ticker:"NVDA",name:"Nvidia",alloc:8,cagr:20.0,color:"#f472b6",mo:150},
+  {ticker:"MSFT",name:"Microsoft",alloc:7,cagr:15.0,color:"#fb923c",mo:100},
+  {ticker:"AVGO",name:"Broadcom",alloc:6,cagr:16.0,color:"#e879f9",mo:75},
+  {ticker:"MA",name:"Mastercard",alloc:6,cagr:14.0,color:"#f43f5e",mo:100},
+  {ticker:"CEG",name:"Constellation Energy",alloc:5,cagr:12.0,color:"#fbbf24",mo:75},
+  {ticker:"SGLN",name:"Gold ETC",alloc:4,cagr:5.0,color:"#fde68a",mo:50},
+  {ticker:"CASH",name:"Cash Reserve",alloc:1,cagr:3.0,color:"#64748b",mo:0},
+];
+
+const INITIAL=50000;
+const SC_COL={bear:"#ff4d6d",base:"#00ff87",bull:"#ffc542"};
+const SC_MUL={bear:0.7,base:1.0,bull:1.3};
+
+let pf=DEFAULT.map((p,i)=>({...p,id:i}));
+let colorIdx=DEFAULT.length;
+let YEARS=30,scen='base',view='chart';
+let TAX=3,INF=2.6,taxOn=true,infOn=true;
+let sims={},mainChart=null,cmpChart=null,lookupRes=null;
+
+const fmt=n=>n>=1e6?`€${(n/1e6).toFixed(2)}M`:n>=1000?`€${(n/1000).toFixed(0)}K`:`€${Math.round(n)}`;
+const totAlloc=()=>pf.reduce((s,p)=>s+p.alloc,0);
+const totMo=()=>pf.reduce((s,p)=>s+p.mo,0);
+const totContrib=()=>INITIAL+totMo()*12*YEARS;
+
+function adjCalc(nom){
+  const c=totContrib();
+  const at=taxOn?c+Math.max(0,nom-c)*(1-TAX/100):nom;
+  const rl=infOn?at/Math.pow(1+INF/100,YEARS):at;
+  return{at,rl};
+}
+
+function simulate(mul){
+  let h=pf.map(p=>({...p,val:INITIAL*(p.alloc/100)}));
+  const data=[];
+  for(let y=0;y<=YEARS;y++){
+    const pt={year:y,total:0};
+    h.forEach(p=>{pt[p.ticker]=Math.round(p.val);pt.total+=p.val;});
+    pt.total=Math.round(pt.total);
+    data.push(pt);
+    if(y<YEARS)h=h.map(p=>{
+      const r=(p.cagr/100*mul)/12;let v=p.val;
+      for(let m=0;m<12;m++)v=v*(1+r)+p.mo;
+      return{...p,val:v};
+    });
+  }
+  return data;
+}
+
+function runSims(){sims={bear:simulate(0.7),base:simulate(1.0),bull:simulate(1.3)};}
+
+function updateStats(){
+  const d=sims[scen];
+  const nom=d[YEARS].total;
+  const{at,rl}=adjCalc(nom);
+  const col=SC_COL[scen],mo=totMo(),c=totContrib();
+  document.getElementById('hsub').textContent=`€50,000 initial · €${mo}/mo · ${YEARS} years · ${fmt(c)} contributed`;
+  const sv=(id,val,col)=>{document.getElementById(id).textContent=val;document.getElementById(id).style.color=col;};
+  sv('sv-nom',fmt(nom),col);sv('sv-tax',fmt(at),'var(--y)');sv('sv-real',fmt(rl),'var(--o)');sv('sv-mo',`€${mo}`,col);
+  document.getElementById('sv-scen').textContent=`${scen} · ${YEARS}yr`;
+  document.getElementById('sv-taxs').textContent=taxOn?`${TAX}% Romanian CGT`:'Tax OFF';
+  document.getElementById('sv-reals').textContent=infOn?`${INF}% EUR inflation`:'Inflation OFF';
+  document.getElementById('sv-yr').textContent=`€${(mo*12).toLocaleString()}/yr`;
+  document.getElementById('pt').textContent=`PORTFOLIO GROWTH — ${scen.toUpperCase()}`;
+  document.getElementById('c-b').textContent=fmt(sims.bear[YEARS].total);
+  document.getElementById('c-bs').textContent=fmt(sims.base[YEARS].total);
+  document.getElementById('c-bu').textContent=fmt(sims.bull[YEARS].total);
+  document.getElementById('tax-d').textContent=`${TAX.toFixed(1)}%`;
+  document.getElementById('inf-d').textContent=`${INF.toFixed(1)}%`;
+  document.getElementById('imp-n').textContent=fmt(nom);
+  document.getElementById('imp-t').textContent=fmt(at);
+  document.getElementById('imp-r').textContent=fmt(rl);
+  document.getElementById('imp-l').textContent=`-${fmt(nom-rl)}`;
+  document.getElementById('rv-n').textContent=fmt(nom);
+  document.getElementById('rv-t').textContent=fmt(at);
+  document.getElementById('rv-ts').textContent=`${TAX}% on gains`;
+  document.getElementById('rv-r').textContent=fmt(rl);
+  document.getElementById('rv-rs').textContent=`In today's euros · ${INF}%`;
+  const ta=totAlloc();
+  document.getElementById('ped-badge').innerHTML=`${ta.toFixed(1)}% allocated · €${mo}/mo${Math.abs(ta-100)>.5?' <span class="warn">⚠ Must = 100%</span>':''}`;
+  document.getElementById('yd').textContent=YEARS;
+  document.getElementById('ys').textContent=`years · age ${25+YEARS}`;
+  // mini milestones
+  const ms=[Math.round(YEARS*.33),Math.round(YEARS*.67),YEARS].filter((v,i,a)=>v>0&&a.indexOf(v)===i).sort((a,b)=>a-b);
+  document.getElementById('ms-mini').innerHTML=ms.map(y=>{
+    const nv=sims[scen][y].total,{rl:rv}=adjCalc(nv);
+    return`<div class="ms-row"><div><div style="font-family:monospace;font-size:10px;color:var(--t2)">Y${y} · Age ${25+y}</div><div style="font-family:monospace;font-size:9px;color:var(--t3);margin-top:2px">Real: ${fmt(rv)}</div></div><div style="font-family:monospace;font-size:13px;font-weight:700;color:${col}">${fmt(nv)}</div></div>`;
+  }).join('');
+}
+
+function renderPosTable(){
+  const ta=totAlloc();
+  document.getElementById('pos-body').innerHTML=pf.map((p,i)=>`
+    <tr class="pt-row">
+      <td><div class="swatch" style="background:${p.color}" onclick="cycleColor(${p.id})" title="Click to change color"></div></td>
+      <td><input class="ei" value="${p.ticker}" style="width:65px;font-weight:700;text-transform:uppercase" onchange="updF(${p.id},'ticker',this.value.toUpperCase())"></td>
+      <td><input class="ei" value="${p.name}" style="width:150px" onchange="updF(${p.id},'name',this.value)"></td>
+      <td><div style="display:flex;align-items:center;gap:4px"><input class="ei" type="number" value="${p.cagr}" min="0" max="50" step="0.5" style="width:55px;text-align:right;color:${p.color}" onchange="updF(${p.id},'cagr',parseFloat(this.value)||0)"><span style="font-family:monospace;font-size:10px;color:var(--t3)">%</span></div></td>
+      <td><div style="display:flex;align-items:center;gap:4px"><input class="ei" type="number" value="${p.alloc}" min="0.1" max="100" step="0.5" style="width:55px;text-align:right" onchange="updF(${p.id},'alloc',parseFloat(this.value)||0)"><span style="font-family:monospace;font-size:10px;color:var(--t3)">%</span></div></td>
+      <td><div style="display:flex;align-items:center;gap:4px"><span style="font-family:monospace;font-size:10px;color:var(--t3)">€</span><input class="ei" type="number" value="${p.mo}" min="0" step="25" style="width:60px;text-align:right" onchange="updF(${p.id},'mo',parseInt(this.value)||0)"></div></td>
+      <td>${pf.length>1?`<button class="del-b" onclick="delPos(${p.id})">✕</button>`:''}</td>
+    </tr>`).join('');
+}
+
+function updF(id,field,val){
+  pf=pf.map(p=>p.id===id?{...p,[field]:val}:p);
+  runSims();updateStats();renderCurrent();
+  if(field==='alloc'||field==='mo')renderPosTable();
+}
+function cycleColor(id){
+  pf=pf.map(p=>{if(p.id!==id)return p;const ci=(COLORS.indexOf(p.color)+1)%COLORS.length;return{...p,color:COLORS[ci]};});
+  renderPosTable();renderCurrent();
+}
+function delPos(id){
+  if(pf.length<=1)return;
+  pf=pf.filter(p=>p.id!==id);
+  runSims();updateStats();renderPosTable();renderCurrent();
+}
+function resetPf(){
+  pf=DEFAULT.map((p,i)=>({...p,id:i}));colorIdx=DEFAULT.length;
+  runSims();updateStats();renderPosTable();renderCurrent();
+}
+
+function renderMainChart(){
+  const d=sims[scen];
+  const labels=d.map(p=>`Y${p.year}`);
+  const datasets=pf.map(p=>({label:p.ticker,data:d.map(pt=>pt[p.ticker]||0),backgroundColor:p.color+'2a',borderColor:p.color+'88',borderWidth:1,fill:true,pointRadius:0,tension:0.4}));
+  if(mainChart)mainChart.destroy();
+  mainChart=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels,datasets},options:{
+    responsive:true,animation:{duration:250},
+    plugins:{legend:{display:false},tooltip:{mode:'index',callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`,title:i=>`Year ${i[0].label.replace('Y','')}`},backgroundColor:'#0c1018',titleColor:'#a0aec0',bodyColor:'#eaeaea',borderColor:'rgba(255,255,255,.1)',borderWidth:1,bodyFont:{family:'monospace',size:11},titleFont:{family:'monospace',size:10},padding:12,boxPadding:4}},
+    scales:{x:{stacked:true,grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#5a6a80',font:{size:10,family:'monospace'}}},y:{stacked:true,grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#5a6a80',font:{size:10,family:'monospace'},callback:v=>fmt(v)}}}
+  }});
+  document.getElementById('lgnd').innerHTML=pf.map(p=>`<div class="li"><div class="ld" style="background:${p.color}"></div>${p.ticker}</div>`).join('');
+}
+
+function renderCmpChart(){
+  const labels=sims.base.map(p=>`Y${p.year}`);
+  const ds=[
+    {label:'Bear',data:sims.bear.map(p=>p.total),borderColor:'#ff4d6d',backgroundColor:'#ff4d6d10',fill:true,borderWidth:2,pointRadius:0,tension:0.4},
+    {label:'Base',data:sims.base.map(p=>p.total),borderColor:'#00ff87',backgroundColor:'#00ff8710',fill:true,borderWidth:2,pointRadius:0,tension:0.4},
+    {label:'Bull',data:sims.bull.map(p=>p.total),borderColor:'#ffc542',backgroundColor:'#ffc54210',fill:true,borderWidth:2,pointRadius:0,tension:0.4},
+  ];
+  if(cmpChart)cmpChart.destroy();
+  cmpChart=new Chart(document.getElementById('cmpChart'),{type:'line',data:{labels,datasets:ds},options:{
+    responsive:true,animation:{duration:250},
+    plugins:{legend:{labels:{color:'#eaeaea',font:{family:'monospace',size:11}}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`},backgroundColor:'#0c1018',bodyColor:'#eaeaea',borderColor:'rgba(255,255,255,.1)',borderWidth:1,bodyFont:{family:'monospace',size:11},padding:12}},
+    scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#5a6a80',font:{size:10,family:'monospace'}}},y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#5a6a80',font:{size:10,family:'monospace'},callback:v=>fmt(v)}}}
+  }});
+}
+
+function renderBreakdown(){
+  const d=sims[scen],col=SC_COL[scen],c=totContrib();
+  const rows=[...pf].sort((a,b)=>(d[YEARS][b.ticker]||0)-(d[YEARS][a.ticker]||0));
+  const tot=d[YEARS].total,{at:ta}=adjCalc(tot);
+  let html=rows.map(p=>{
+    const fin=d[YEARS][p.ticker]||0,init=INITIAL*(p.alloc/100);
+    const m=(fin/Math.max(init,1)).toFixed(1),mc=parseFloat(m)>20?'#00ff87':parseFloat(m)>10?'#ffc542':'#64748b';
+    const{at:pt}=adjCalc(fin);
+    const cg=(p.cagr*SC_MUL[scen]).toFixed(1);
+    return`<tr><td style="padding:9px 10px"><div style="display:flex;align-items:center;gap:6px"><div style="width:7px;height:7px;border-radius:50%;background:${p.color};flex-shrink:0"></div><div><div style="font-weight:600;color:var(--t);font-size:11px">${p.ticker}</div><div style="font-size:9px;color:var(--t3);font-family:monospace">${p.name}</div></div></div></td><td style="font-family:monospace;font-size:10px;color:${p.color};padding:9px 10px">${cg}%</td><td style="font-family:monospace;font-size:10px;color:var(--t2);padding:9px 10px">${p.alloc}%</td><td style="font-family:monospace;font-size:10px;color:var(--t2);padding:9px 10px">${p.mo?`€${p.mo}`:'—'}</td><td style="font-family:monospace;font-size:10px;color:var(--t3);padding:9px 10px">${fmt(init)}</td><td style="font-family:monospace;font-size:11px;font-weight:600;padding:9px 10px">${fmt(fin)}</td><td style="font-family:monospace;font-size:10px;color:var(--y);padding:9px 10px">${fmt(pt)}</td><td style="font-family:monospace;font-size:10px;color:${mc};padding:9px 10px">${m}×</td></tr>`;
+  }).join('');
+  html+=`<tr class="tr"><td colspan="5" style="padding:9px 10px;font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:1px">TOTAL</td><td style="color:${col};padding:9px 10px">${fmt(tot)}</td><td style="color:var(--y);padding:9px 10px">${fmt(ta)}</td><td style="color:${col};padding:9px 10px">${(tot/c).toFixed(1)}×</td></tr>`;
+  document.getElementById('bk-body').innerHTML=html;
+}
+
+function renderMilestones(){
+  const steps=[...new Set([5,10,15,20,25,30,35,40].filter(y=>y<=YEARS).concat([YEARS]))].sort((a,b)=>a-b);
+  const col=SC_COL[scen];
+  document.getElementById('ms-grid').innerHTML=steps.map(y=>{
+    const b=sims.bear[y].total,bs=sims.base[y].total,bu=sims.bull[y].total;
+    const act=scen==='bear'?b:scen==='bull'?bu:bs;
+    const{rl}=adjCalc(act);
+    return`<div class="msc"><div class="msy">Y${y} · AGE ${25+y}</div><div class="msv" style="color:${col}">${fmt(act)}</div><div style="font-family:monospace;font-size:9px;color:var(--o);margin-bottom:8px">Real: ${fmt(rl)}</div><div class="msr"><span style="color:#ff4d6d">Bear</span><span style="color:#ff4d6d">${fmt(b)}</span></div><div class="msr"><span style="color:#00ff87">Base</span><span style="color:#00ff87">${fmt(bs)}</span></div><div class="msr"><span style="color:#ffc542">Bull</span><span style="color:#ffc542">${fmt(bu)}</span></div></div>`;
+  }).join('');
+}
+
+function setScen(s){
+  scen=s;
+  document.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));
+  document.querySelector(`.sb.${s}`).classList.add('on');
+  updateStats();renderCurrent();
+}
+
+function setView(v){
+  view=v;
+  ['chart','compare','breakdown','milestones'].forEach(x=>document.getElementById(`v-${x}`).style.display=x===v?'block':'none');
+  document.querySelectorAll('.vt').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase()===v));
+  renderCurrent();
+}
+
+function onYr(val){YEARS=parseInt(val);runSims();updateStats();renderCurrent();}
+function onTax(val){TAX=parseFloat(val);document.getElementById('tax-d').textContent=`${TAX.toFixed(1)}%`;updateStats();renderCurrent();}
+function onInf(val){INF=parseFloat(val);document.getElementById('inf-d').textContent=`${INF.toFixed(1)}%`;updateStats();renderCurrent();}
+function updAdj(){
+  taxOn=document.getElementById('tax-tog').checked;
+  infOn=document.getElementById('inf-tog').checked;
+  document.getElementById('tax-tl').textContent=taxOn?'Tax ON':'Tax OFF';
+  document.getElementById('inf-tl').textContent=infOn?'Inflation ON':'Inflation OFF';
+  updateStats();renderCurrent();
+}
+
+function renderCurrent(){
+  if(view==='chart')renderMainChart();
+  else if(view==='compare')renderCmpChart();
+  else if(view==='breakdown')renderBreakdown();
+  else if(view==='milestones')renderMilestones();
+}
+
+// MODAL
+function openModal(){
+  lookupRes=null;
+  document.getElementById('modal').style.display='flex';
+  document.getElementById('m-ticker').value='';
+  document.getElementById('lookup-status').innerHTML='';
+  document.getElementById('add-btn').disabled=true;
+  setTimeout(()=>document.getElementById('m-ticker').focus(),100);
+}
+function closeModal(){document.getElementById('modal').style.display='none';}
+
+async function doLookup(){
+  const ticker=document.getElementById('m-ticker').value.trim().toUpperCase();
+  if(!ticker)return;
+  const btn=document.getElementById('lookup-btn');
+  const status=document.getElementById('lookup-status');
+  btn.disabled=true;btn.textContent='RESEARCHING...';
+  status.innerHTML=`<div style="background:rgba(0,255,135,.05);border:1px solid rgba(0,255,135,.15);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center"><div class="pulse" style="font-family:monospace;font-size:11px;color:var(--g)">Analysing ${ticker} — historical data, sector outlook, forward estimates...</div></div>`;
+  document.getElementById('add-btn').disabled=true;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:350,
+        system:`You are a financial research assistant. Respond ONLY with a valid JSON object, no markdown, no backticks. Format exactly: {"ticker":"TICKER","name":"Full official name","cagr":12.5,"reasoning":"One sentence conservative CAGR explanation"}. CAGR rules: base on 10yr historical, apply 20-30% conservatism discount, ETFs use index history discounted for mean reversion, stocks heavily discounted, gold/commodities max 7%, bonds/cash max 4%, no asset exceeds 25%.`,
+        messages:[{role:'user',content:`Research ticker: ${ticker}`}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.map(c=>c.text||'').join('').trim();
+    lookupRes=JSON.parse(text);
+    status.innerHTML=`<div style="background:rgba(0,255,135,.06);border:1px solid rgba(0,255,135,.2);border-radius:10px;padding:16px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div style="font-size:20px;font-weight:800;letter-spacing:1px">${lookupRes.ticker}</div><div style="font-family:monospace;font-size:11px;color:var(--t2)">${lookupRes.name}</div></div>
+        <div style="text-align:right"><div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:3px">CONSERVATIVE CAGR</div><div style="font-size:26px;font-weight:900;color:var(--g)">${lookupRes.cagr}%</div></div>
+      </div>
+      <div style="font-family:monospace;font-size:10px;color:var(--t3);line-height:1.6;padding:10px;background:rgba(255,255,255,.03);border-radius:8px">${lookupRes.reasoning}</div>
+    </div>`;
+    document.getElementById('add-btn').disabled=false;
+  }catch(e){
+    status.innerHTML=`<div class="err-box">
+      <div style="font-family:monospace;font-size:11px;color:var(--r);margin-bottom:12px">Lookup failed — enter manually below</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div class="mf" style="margin:0"><label>NAME</label><input type="text" id="fb-name" placeholder="e.g. Alphabet Inc."></div>
+        <div class="mf" style="margin:0"><label>CAGR %</label><input type="number" id="fb-cagr" placeholder="e.g. 12.5" step="0.5"></div>
+      </div>
+      <button onclick="useFallback('${ticker}')" style="background:rgba(255,255,255,.08);border:1px solid var(--b2);border-radius:6px;color:var(--t);font-family:monospace;font-size:10px;padding:7px 14px;cursor:pointer;letter-spacing:1px">USE MANUAL VALUES</button>
+    </div>`;
+  }
+  btn.disabled=false;btn.textContent='RESEARCH ▸';
+}
+
+function useFallback(ticker){
+  const name=document.getElementById('fb-name')?.value||ticker;
+  const cagr=parseFloat(document.getElementById('fb-cagr')?.value)||10;
+  lookupRes={ticker,name,cagr,reasoning:'Manually entered CAGR estimate'};
+  document.getElementById('lookup-status').innerHTML=`<div style="background:rgba(0,255,135,.06);border:1px solid rgba(0,255,135,.2);border-radius:10px;padding:14px;margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:18px;font-weight:800">${ticker}</div><div style="font-family:monospace;font-size:11px;color:var(--t2)">${name}</div></div><div style="text-align:right"><div style="font-family:monospace;font-size:9px;color:var(--t3);letter-spacing:2px">MANUAL CAGR</div><div style="font-size:24px;font-weight:900;color:var(--g)">${cagr}%</div></div></div></div>`;
+  document.getElementById('add-btn').disabled=false;
+}
+
+function confirmAdd(){
+  if(!lookupRes)return;
+  pf.push({ticker:lookupRes.ticker,name:lookupRes.name,alloc:5,cagr:lookupRes.cagr,color:COLORS[colorIdx++%COLORS.length],mo:100,id:Date.now()});
+  closeModal();runSims();updateStats();renderPosTable();renderCurrent();
+}
+
+// INIT
+runSims();updateStats();renderPosTable();renderCurrent();
+</script>
+
+</body>
+</html>
